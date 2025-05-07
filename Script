@@ -4,7 +4,6 @@ local serverscriptservice = game:GetService("ServerScriptService")
 local modules = serverscriptservice:WaitForChild("Modules")
 
 local DataStore2 = require(modules:WaitForChild("datastore2"))
-local TimerAndWake = require(modules:WaitForChild("TimerAndWake"))
 
 local dsname = "Test"
 
@@ -61,7 +60,6 @@ players.PlayerRemoving:Connect(function(plr)
 	for _, child in pairs(plr:GetChildren()) do
 		if child:IsA("NumberValue") or child:IsA("StringValue") then
 			save(plr, child.Name, child.Value)
-			TimerAndWake.StopTimerFunc(plr)
 		end
 	end
 end)
