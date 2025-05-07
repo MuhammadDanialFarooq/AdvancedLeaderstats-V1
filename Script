@@ -1,0 +1,67 @@
+local players = game:GetService("Players")
+local serverscriptservice = game:GetService("ServerScriptService")
+
+local modules = serverscriptservice:WaitForChild("Modules")
+
+local DataStore2 = require(modules:WaitForChild("datastore2"))
+local TimerAndWake = require(modules:WaitForChild("TimerAndWake"))
+
+local dsname = "Test"
+
+local startingval = {
+	["Best time"] = 0,
+	["current time"] = 0,
+	["MaxWakeTime"] = 60,
+	["CurrentWakeTime"] = 60,
+	["Equipped"] = "Tea"
+}
+
+local DataObj = {}
+
+local function save(plr, name, value)
+	local datastore = DataStore2(dsname, plr)
+	local data = datastore:Get(startingval)
+	data[name] = value 
+	datastore:Set(data) 
+end
+
+local function load(plr)
+	local datastore = DataStore2(dsname, plr)
+	local savedData = datastore:Get(startingval)
+	return savedData
+end
+
+
+players.PlayerAdded:Connect(function(plradded)
+	local savedData = load(plradded)
+	DataObj[plradded] = {}
+	for name, defaultValue in pairs(startingval) do
+		local instanceValue
+		if typeof(defaultValue) == "number" then
+			instanceValue = Instance.new("NumberValue")
+		elseif typeof(defaultValue) == "string" then
+			instanceValue = Instance.new("StringValue")
+		end
+		if instanceValue then
+			instanceValue.Name = name
+			instanceValue.Parent = plradded
+			instanceValue.Value = savedData[name] or defaultValue
+			instanceValue:GetPropertyChangedSignal("Value"):Connect(function()
+				save(plradded, instanceValue.Name, instanceValue.Value)
+			end)
+		end
+	end
+	plradded.CharacterAdded:Connect(function(Char)
+		--spawn logic
+	end)
+end)
+
+
+players.PlayerRemoving:Connect(function(plr)
+	for _, child in pairs(plr:GetChildren()) do
+		if child:IsA("NumberValue") or child:IsA("StringValue") then
+			save(plr, child.Name, child.Value)
+			TimerAndWake.StopTimerFunc(plr)
+		end
+	end
+end)
